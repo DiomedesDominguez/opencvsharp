@@ -19,6 +19,22 @@ namespace OpenCvSharp.Tests.Core
         }
 
         [Fact]
+        public void MatIndexer()
+        {
+            const byte value = 123;
+            var img = new Mat(new Size(10, 10), MatType.CV_8UC1, Scalar.All(value));
+            var imgB = new MatOfByte(img);
+            var indexer = imgB.GetIndexer();
+            var generiCIndexer = img.GetGenericIndexer<byte>();
+
+            Assert.Equal(value, indexer[0, 0]);
+            Assert.Equal(value, generiCIndexer[0, 0]);
+
+            img.Dispose();
+            imgB.Dispose();
+        }
+
+        [Fact]
         public void SetTo()
         {
             using (Mat graySrc = Image("lenna.png", ImreadModes.GrayScale))
@@ -314,6 +330,21 @@ namespace OpenCvSharp.Tests.Core
             mat.GetArray(0, 0, data2);
 
             Assert.Equal(data, data2);
+        }
+
+        [Fact(Skip = "heavy")]
+        public void Issue349()
+        {
+            var array = new float[8, 8];
+            var handle = System.Runtime.InteropServices.GCHandle.Alloc(array, System.Runtime.InteropServices.GCHandleType.Pinned);
+            var ptr = handle.AddrOfPinnedObject();
+            Mat mat1 = new Mat(8, 8, MatType.CV_32FC1, ptr);
+            for(long i = 0; i < 1000000; i++)
+            {
+                Mat mat2 = mat1.Idct(); 
+            }
+
+            handle.Free();
         }
     }
 }
